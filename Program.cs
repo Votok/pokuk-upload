@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using Microsoft.WindowsAzure; // Namespace for CloudConfigurationManager
 using Microsoft.WindowsAzure.Storage; // Namespace for CloudStorageAccount
 using Microsoft.WindowsAzure.Storage.Blob; // Namespace for Blob storage types
-using Newtonsoft.Json;
 using System.Linq;
 using System.Xml.Linq;
 using System.Threading.Tasks;
 using pokuk_common;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace pokuk_upload
 {
@@ -17,22 +17,15 @@ namespace pokuk_upload
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Program started");
-
-            var builder = new ConfigurationBuilder()
-           .SetBasePath(Directory.GetCurrentDirectory())
-           .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-           .AddEnvironmentVariables();
-
-            var configuration = builder.Build();
-
-            var config = new GalleryOptions();
-            configuration.Bind(config);
-
-            var provider = new GalleryProvider(config);
-            provider.AddNewEventsToAzure();
-
-            Console.WriteLine("Program finished.");
+            CreateHostBuilder(args).Build().Run();
         }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+            .UseContentRoot(Directory.GetCurrentDirectory())
+            .ConfigureServices((hostContext, services) =>
+            {
+               services.AddHostedService<Worker>();
+            });
     }
 }
